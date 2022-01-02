@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+option go_package = "onboarding/common/grpc/numbers";
+
+package numberspb;
+
+service numbers {
+  rpc addNum (addNumRequest) returns (addNumResponse) {}
+  rpc getNums (getNumsRequest) returns (getNumsResponse) {}
+  rpc removeNum (removeNumRequest) returns (removeNumResponse) {}
+  rpc query_number (queryNumberRequest) returns (queryNumberResponse) {}
+}
+
+message addNumRequest {
+  int64 num = 1;
+}
+
+message addNumResponse {
+  bool ok = 1;
+  int64 num = 2;
+}
+
+message getNumsRequest {}
+
+message getNumsResponse {
+  bool ok = 1;
+  map<int64,int64> numsMap = 2;
+}
+
+message removeNumRequest {
+  int64 num = 1;
+}
+
+message removeNumResponse {
+  bool ok = 1;
+  int64 num = 2;
+}
+
+message queryNumberRequest {
+  int64 num = 1;
+}
+
+message queryNumberResponse {
+  bool ok = 1;
+  int64 num =2;
+}

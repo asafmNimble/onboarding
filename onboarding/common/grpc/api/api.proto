@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option go_package = "onboarding/common/grpc/api";
+
+package apipb;
+
+service guessNums {
+  rpc guessNum (stream numGuessRequest) returns (stream numGuessResponse) {}
+}
+
+message numGuessRequest {
+  int64 num = 1;
+  int64 guesserID = 2;
+}
+
+message numGuessResponse {
+  bool ok = 1;
+  string err = 2;
+  bool found = 3;
+  int64 num = 4;
+  int64 guesserID = 5;
+}

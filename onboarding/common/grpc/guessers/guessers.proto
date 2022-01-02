@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+option go_package = "onboarding/common/grpc/guessers";
+
+package guesserspb;
+
+service guessers {
+  rpc addGuesser (addGuesserRequest) returns (addGuesserResponse) {}
+  rpc removeGuesser (removeGuesserRequest) returns (removeGuesserResponse) {}
+  rpc queryGuesser (queryGuesserRequest) returns (queryGuesserResponse) {}
+}
+
+message addGuesserRequest {
+  int64 beginAt = 1;
+  int64 incrementBy = 2;
+  int64 sleep = 3;
+}
+
+message addGuesserResponse {
+  int64 guesserID = 1;
+}
+
+message removeGuesserRequest {
+  int64 guesserID = 1;
+}
+
+message removeGuesserResponse {
+  bool ok = 1;
+  int64 guesserID = 2;
+}
+
+message queryGuesserRequest {
+  int64 guesserID = 1;
+}
+
+message queryGuesserResponse {
+  int64 guesserID = 1;
+}
