@@ -8,7 +8,6 @@ import (
 type Number struct {
 	ID      primitive.ObjectID `bson:"_id"`
 	Number  int64              `bson:"number,omitempty"`
-	Active  bool        `bson:"active,omitempty"`
 	Guesses []GuessType `bson:"guesses,omitempty"`
 }
 
@@ -21,7 +20,6 @@ func NewNumber(num int64) (*Number, error) {
 	number := &Number{
 		ID:      primitive.NewObjectID(),
 		Number:  num,
-		Active:  true,
 		Guesses: nil,
 	}
 	return number, nil

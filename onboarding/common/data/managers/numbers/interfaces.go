@@ -6,13 +6,15 @@ import (
 )
 
 type DBBackend interface {
-	AddNum(n *entities.Number) (primitive.ObjectID, error)
-	RemoveNum(n *entities.Number) (primitive.ObjectID, error)
+	AddNum(n *entities.Number) (string, error)
+	RemoveNum(n int64) (bool, error)
 	QueryNumber(n int64) (primitive.ObjectID, *entities.Number, error)
+	Get(n int64) (*entities.Number, error)
 }
 
 type NumbersManager interface {
-	AddNum(n *entities.Number) (primitive.ObjectID, error)
-	RemoveNum(n *entities.Number) (primitive.ObjectID, error)
+	AddNum(n *entities.Number) (string, error)
+	RemoveNum(n int64) (bool, error)
 	QueryNumber(n int64) (primitive.ObjectID, *entities.Number, error)
+	Get(n int64) (*entities.Number, error)
 }

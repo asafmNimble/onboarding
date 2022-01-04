@@ -15,16 +15,16 @@ func NewManager(b DBBackend) *Manager {
 	}
 }
 
-func (m *Manager) AddNum(num int64) (primitive.ObjectID, *entities.Number, error) {
+func (m *Manager) AddNum(num int64) (string, error) {
 	number, err := entities.NewNumber(num)
 	if err != nil {
-		return number.ID, nil, err
+		return "", err
 	}
 	numID, err := m.backend.AddNum(number)
 	if err != nil {
-		return number.ID, nil, err
+		return "", err
 	}
-	return numID, number, err
+	return numID, err
 }
 
 func (m *Manager) QueryNumber(num int64) (primitive.ObjectID, *entities.Number, error) {
@@ -35,11 +35,19 @@ func (m *Manager) QueryNumber(num int64) (primitive.ObjectID, *entities.Number, 
 	return numID, numDetails, err
 }
 
-func (m *Manager) RemoveNum(num int64) (primitive.ObjectID, *entities.Number, error) {
-	numID, numDetails, err := m.QueryNumber(num)
+func (m *Manager) RemoveNum(num int64) (bool, error) {
+	_, err := m.backend.Get(num)
 	if err != nil {
-		return numID, nil, err
+		return false, err
 	}
-	numDetails.Active = false
-	return numID, numDetails, err
+	m.backend.RemoveNum(num)
+	return true, err
+}
+
+func (m *Manager) Get(num int64) (*entities.Number, error) {
+	number, err := m.backend.Get(num)
+	if err != nil {
+		return nil, err
+	}
+	return number, nil
 }

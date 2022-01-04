@@ -30,7 +30,7 @@ func (*MongoConnector) connect() (*mongo.Client, error) {
 	defer cancel()
 
 	// explicit default client level options
-	opts := options.Client().ApplyURI("10s")
+	opts := options.Client().ApplyURI("mongodb://172.38.0.27:27001,172.38.0.27:27002,172.38.0.27:27003/?replicaSet=rs0")
 	opts = opts.SetReadConcern(readconcern.Majority()).SetWriteConcern(writeconcern.New(writeconcern.WMajority()))
 
 	client, err := mongo.Connect(ctx, opts)
@@ -49,5 +49,5 @@ func (m *MongoConnector) GetDB() *mongo.Database {
 		}
 		singletonClient = client
 	})
-	return singletonClient.Database("AwesomeProject1")
+	return singletonClient.Database("onboarding")
 }
