@@ -66,7 +66,7 @@ func (ns *NumsServer) RemoveNum(_ context.Context, numReq *numberspb.RemoveNumRe
 func (ns *NumsServer) QueryNumber(_ context.Context, numReq *numberspb.QueryNumberRequest) (*numberspb.QueryNumberResponse, error) {
 	i := numReq.Num
 	number, err := ns.MongoManage.Get(i)
-	if notFound(err.Error()) {
+	if err != nil && notFound(err.Error()) {
 		return nil, errors.New("number doesn't exist in database")
 	}
 	if err != nil {
