@@ -131,7 +131,11 @@ func queryNumber(c *gin.Context) {
 		return
 	}
 
+
 	var guesses []entities.GuessType
+	// TODO: add if list is empty
+
+
 	for _, g := range response.GuessList {
 		guesses = append(guesses, entities.GuessType{
 			FoundBy: g.Guesser,
