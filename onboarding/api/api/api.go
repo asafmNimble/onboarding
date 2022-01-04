@@ -8,10 +8,12 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"onboarding/common/data/entities"
 	"onboarding/common/grpc/api"
 	guesserspb "onboarding/common/grpc/guessers"
 	numberspb "onboarding/common/grpc/numbers"
 	"sync"
+	"time"
 )
 
 // Numbers Server
@@ -19,7 +21,6 @@ import (
 var numServerAddr = "localhost:7000"
 var numbersClient numberspb.NumbersClient
 var numOnce sync.Once
-
 
 func getNumbersClientInternal(server string) (numberspb.NumbersClient, error) {
 	if numbersClient != nil {
@@ -129,9 +130,19 @@ func queryNumber(c *gin.Context) {
 		c.Error(err)
 		return
 	}
+
+	var guesses []entities.GuessType
+	for _, g := range response.GuessList {
+		guesses = append(guesses, entities.GuessType{
+			FoundBy: g.Guesser,
+			FoundAt: time.Unix(g.Time, 0),
+		})
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "Accepted",
 		"num_got": response.Num,
+		"guesses": guesses,
 	})
 }
 

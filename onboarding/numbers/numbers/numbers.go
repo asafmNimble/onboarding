@@ -18,7 +18,7 @@ type NumsServer struct { //Defined a server that executes the far side functions
 	MongoManage numbers.Manager
 }
 
-func notFound(s string) bool{
+func notFound(s string) bool {
 	if s == "mongo: no documents in result" {
 		return true
 	}
@@ -29,19 +29,17 @@ func notFound(s string) bool{
 //       v
 func (ns *NumsServer) AddNum(_ context.Context, numReq *numberspb.AddNumRequest) (*numberspb.AddNumResponse, error) {
 	i := numReq.Num
-	//_, found := numMap[i]
-	//if found {
-	//	return nil, errors.New("number already in database")
-	//}
-	//numMap[i] = i
 	_, err := ns.MongoManage.Get(i)
-	if err != nil && !notFound(err.Error()){
+	if err != nil && !notFound(err.Error()) {
 		return nil, err
 	}
 	if err == nil {
 		return nil, errors.New("number already in database")
 	}
-	ns.MongoManage.AddNum(i)
+	_, err = ns.MongoManage.AddNum(i)
+	if err != nil {
+		return nil, err
+	}
 	return &numberspb.AddNumResponse{
 		Ok:  true,
 		Num: i,
@@ -50,16 +48,15 @@ func (ns *NumsServer) AddNum(_ context.Context, numReq *numberspb.AddNumRequest)
 
 func (ns *NumsServer) RemoveNum(_ context.Context, numReq *numberspb.RemoveNumRequest) (*numberspb.RemoveNumResponse, error) {
 	i := numReq.Num
-	//_, found := numMap[i]
-	//if !found {
-	//	return nil, errors.New("number doesn't exist in database")
-	//}
+
 	_, err := ns.MongoManage.Get(i)
 	if err != nil {
 		return nil, err
 	}
-	//delete(numMap, i)
-	ns.MongoManage.RemoveNum(i)
+	_, err = ns.MongoManage.RemoveNum(i)
+	if err != nil {
+		return nil, err
+	}
 	return &numberspb.RemoveNumResponse{
 		Ok:  true,
 		Num: i,
@@ -68,14 +65,25 @@ func (ns *NumsServer) RemoveNum(_ context.Context, numReq *numberspb.RemoveNumRe
 
 func (ns *NumsServer) QueryNumber(_ context.Context, numReq *numberspb.QueryNumberRequest) (*numberspb.QueryNumberResponse, error) {
 	i := numReq.Num
-	//_, found := numMap[i]
-	_, found := numMap[i]
-	if !found {
+	number, err := ns.MongoManage.Get(i)
+	if notFound(err.Error()) {
 		return nil, errors.New("number doesn't exist in database")
+	}
+	if err != nil {
+		return nil, err
+	}
+	// Number found
+	var guesses []*numberspb.Guess
+	for _, g := range number.Guesses {
+		guesses = append(guesses, &numberspb.Guess{
+			Guesser: g.FoundBy,
+			Time:    g.FoundAt.Unix(),
+		})
 	}
 	return &numberspb.QueryNumberResponse{
 		Ok:  true,
 		Num: i,
+		GuessList: guesses,
 	}, nil
 }
 

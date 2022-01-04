@@ -8,7 +8,7 @@ import (
 type Number struct {
 	ID      primitive.ObjectID `bson:"_id"`
 	Number  int64              `bson:"number,omitempty"`
-	Guesses []GuessType `bson:"guesses,omitempty"`
+	Guesses []GuessType        `bson:"guesses,omitempty"`
 }
 
 type GuessType struct {

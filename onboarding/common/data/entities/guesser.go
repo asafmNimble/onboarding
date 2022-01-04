@@ -11,8 +11,8 @@ type Guesser struct {
 	BeginAt     int64              `bson:"begin_at"`
 	IncrementBy int64              `bson:"increment_by"`
 	Sleep       int64              `bson:"sleep"`
-	Active      bool    `bson:"active"`
-	GuessesMade []Guess `bson:"guesses_made"`
+	Active      bool               `bson:"active"`
+	GuessesMade []Guess            `bson:"guesses_made"`
 }
 
 type Guess struct {

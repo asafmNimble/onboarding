@@ -3,7 +3,6 @@ package mongo
 import (
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"onboarding/common/data/entities"
 	"time"
@@ -28,29 +27,29 @@ func NewMongoNumber(dbc DBConnector) *MongoNumber {
 func (mn *MongoNumber) AddNum(n *entities.Number) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
 	defer cancel()
-	_, err := mn.dbCollection.InsertOne(ctx, bson.D{{"_id", n.ID}, {"number", n.Number}, {"guesses", n.Guesses}})  // UpdateOne(ctx, bson.D{{"_id", n.ID}}, bson.D{{"$set", bson.D{{"number", n.Number}, {"active", n.Active}, {"guesses", n.Guesses}}}})
+	_, err := mn.dbCollection.InsertOne(ctx, bson.D{{"_id", n.ID}, {"number", n.Number}, {"guesses", n.Guesses}}) // UpdateOne(ctx, bson.D{{"_id", n.ID}}, bson.D{{"$set", bson.D{{"number", n.Number}, {"active", n.Active}, {"guesses", n.Guesses}}}})
 	if err != nil {
 		return n.ID.Hex(), err
 	}
 	return n.ID.Hex(), nil
 }
 
-func (mn *MongoNumber) QueryNumber(num int64) (primitive.ObjectID, *entities.Number, error) {
+func (mn *MongoNumber) QueryNumber(num int64) (int64, *[]entities.GuessType, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
 	defer cancel()
-	var res entities.Number
-	err := mn.dbCollection.FindOne(ctx, bson.D{{"Number", num}}).Decode(&res)
+	var number entities.Number
+	err := mn.dbCollection.FindOne(ctx, bson.D{{"number", num}}).Decode(&number)
+	guesses := number.Guesses
 	if err != nil {
-		return res.ID, nil, err
+		return num, nil, err
 	}
-	return res.ID, &res, nil
+	return num, &guesses, nil
 }
 
-
 func (mn *MongoNumber) RemoveNum(num int64) (bool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(300)*time.Second)  //TODO: change back to 3 secs
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
 	defer cancel()
-	_, err := mn.dbCollection.DeleteOne(ctx, bson.D{{"Number", num}})
+	_, err := mn.dbCollection.DeleteOne(ctx, bson.D{{"number", num}})
 	if err != nil {
 		return false, err
 	}

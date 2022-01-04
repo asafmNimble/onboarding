@@ -36,6 +36,11 @@ message removeNumResponse {
   int64 num = 2;
 }
 
+message guess {
+  string guesser = 1;
+  int64 time = 2;
+}
+
 message queryNumberRequest {
   int64 num = 1;
 }
@@ -43,4 +48,5 @@ message queryNumberRequest {
 message queryNumberResponse {
   bool ok = 1;
   int64 num =2;
+  repeated guess guessList = 3;
 }

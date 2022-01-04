@@ -1,8 +1,8 @@
 package guessers
 
 import (
-	"onboarding/common/data/entities"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"onboarding/common/data/entities"
 )
 
 type DBBackend interface {
