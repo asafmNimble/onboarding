@@ -273,6 +273,8 @@ func queryGuesser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":          "Accepted",
 		"guesser_queried": response.GuesserID,
+		"guesses_made":    response.GuessList,
+		"active":          response.Active,
 	})
 }
 

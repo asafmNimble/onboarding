@@ -27,8 +27,9 @@ func NewMongoGuesser(dbc DBConnector) *MongoGuesser {
 func (mg *MongoGuesser) AddGuesser(g *entities.Guesser) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
 	defer cancel()
-	_, err := mg.dbCollection.InsertOne(ctx, bson.D{{"_id", g.ID}, {"begin_at", g.BeginAt}, {"increment_by", g.IncrementBy},
-		{"sleep", g.Sleep}, {"active", g.Active}, {"guesses_made", g.GuessesMade}})
+	_, err := mg.dbCollection.InsertOne(ctx, bson.D{{"_id", g.ID}, {"guesser_id", g.GuesserID}, {"begin_at", g.BeginAt},
+		{"increment_by", g.IncrementBy}, {"sleep", g.Sleep}, {"active", g.Active},
+		{"guesses_made", g.GuessesMade}})
 	if err != nil {
 		return g.ID.Hex(), err
 	}
@@ -38,7 +39,7 @@ func (mg *MongoGuesser) AddGuesser(g *entities.Guesser) (string, error) {
 func (mn *MongoGuesser) RemoveGuesser(guesserID int64) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
 	defer cancel()
-	_, err := mn.dbCollection.DeleteOne(ctx, bson.D{{"ID", guesserID}})
+	_, err := mn.dbCollection.DeleteOne(ctx, bson.D{{"guesser_id", guesserID}})
 	if err != nil {
 		return false, err
 	}
@@ -50,7 +51,7 @@ func (mg *MongoGuesser) QueryGuesser(guesserID int64) (string, *[]entities.Guess
 	defer cancel()
 	var guesser entities.Guesser
 	//err := mg.dbCollection.FindOne(ctx, bson.D{{"ID", g.GuesserID}, {"guesses", g.GuessesMade}, {"active", g.Active}}).Decode(&guesser)
-	err := mg.dbCollection.FindOne(ctx, bson.D{{"ID", guesserID}}).Decode(&guesser)
+	err := mg.dbCollection.FindOne(ctx, bson.D{{"guesser_id", guesserID}}).Decode(&guesser)
 	guessesMade := &guesser.GuessesMade
 	if err != nil {
 		return guesser.ID.Hex(), nil, false, err
@@ -63,7 +64,7 @@ func (mg *MongoGuesser) GetGuesser(guesserID int64) (*entities.Guesser, error) {
 	defer cancel()
 	var guesser entities.Guesser
 	//err := mg.dbCollection.FindOne(ctx, bson.D{{"ID", g.GuesserID}, {"guesses", g.GuessesMade}, {"active", g.Active}}).Decode(&guesser)
-	err := mg.dbCollection.FindOne(ctx, bson.D{{"ID", guesserID}}).Decode(&guesser)
+	err := mg.dbCollection.FindOne(ctx, bson.D{{"guesser_id", guesserID}}).Decode(&guesser)
 	if err != nil {
 		return nil, err
 	}
