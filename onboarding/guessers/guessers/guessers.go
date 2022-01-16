@@ -23,13 +23,6 @@ type GuessServer struct {
 	MongoManage guessers.Manager
 }
 
-func notFound(s string) bool {
-	if s == "mongo: no documents in result" {
-		return true
-	}
-	return false
-}
-
 func (gs *GuessServer) AddGuesser(_ context.Context, guesserRequest *guesserspb.AddGuesserRequest) (*guesserspb.AddGuesserResponse, error) {
 	guesserID := IDs
 	beginAt := guesserRequest.BeginAt
