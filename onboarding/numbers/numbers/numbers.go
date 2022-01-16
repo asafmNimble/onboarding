@@ -84,11 +84,12 @@ func (ns *NumsServer) QueryNumber(_ context.Context, numReq *numberspb.QueryNumb
 		})
 	}
 	return &numberspb.QueryNumberResponse{
-		Ok:  true,
-		Num: i,
+		Ok:        true,
+		Num:       i,
 		GuessList: guesses,
 	}, nil
 }
+
 /*
 // TODO: delete this func
 func (ns *NumsServer) GetNums(_ context.Context, numReq *numberspb.GetNumsRequest) (*numberspb.GetNumsResponse, error) {

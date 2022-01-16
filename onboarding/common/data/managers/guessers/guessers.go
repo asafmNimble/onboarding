@@ -50,4 +50,3 @@ func (m *Manager) GetGuesser(guesserID int64) (*entities.Guesser, error) {
 	}
 	return guesser, nil
 }
-

@@ -24,18 +24,18 @@ func NewMongoGuesser(dbc DBConnector) *MongoGuesser {
 	return guesser
 }
 
-func (mg *MongoGuesser) AddGuesser (g *entities.Guesser) (string, error) {
+func (mg *MongoGuesser) AddGuesser(g *entities.Guesser) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
 	defer cancel()
 	_, err := mg.dbCollection.InsertOne(ctx, bson.D{{"_id", g.ID}, {"begin_at", g.BeginAt}, {"increment_by", g.IncrementBy},
-													{"sleep", g.Sleep}, {"active", g.Active}, {"guesses_made", g.GuessesMade}})
+		{"sleep", g.Sleep}, {"active", g.Active}, {"guesses_made", g.GuessesMade}})
 	if err != nil {
 		return g.ID.Hex(), err
 	}
 	return g.ID.Hex(), nil
 }
 
-func (mg *MongoGuesser) QueryGuesser (g *entities.Guesser) (string, *[]entities.Guess, bool, error) {
+func (mg *MongoGuesser) QueryGuesser(g *entities.Guesser) (string, *[]entities.Guess, bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
 	defer cancel()
 	var guesser entities.Guesser
@@ -57,7 +57,7 @@ func (mn *MongoNumber) RemoveGuesser(guesserID int64) (bool, error) {
 	return true, nil
 }
 
-func (mg *MongoGuesser) GetGuesser (g *entities.Guesser) (*entities.Guesser, error) {
+func (mg *MongoGuesser) GetGuesser(g *entities.Guesser) (*entities.Guesser, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
 	defer cancel()
 	var guesser entities.Guesser

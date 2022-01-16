@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"onboarding/common/data/dbbackends/mongo"
 	"onboarding/common/data/managers/guessers"
 	"onboarding/common/grpc/api"
 	guesserspb "onboarding/common/grpc/guessers"
@@ -29,13 +30,13 @@ func (gs *GuessServer) AddGuesser(_ context.Context, guesserRequest *guesserspb.
 	incrementBy := guesserRequest.IncrementBy
 	sleep := guesserRequest.Sleep
 	IDs++
-	_, err := gs.MongoManage.AddGuesser(guesserID, beginAt, incrementBy,sleep)
+	_, err := gs.MongoManage.AddGuesser(guesserID, beginAt, incrementBy, sleep)
 	/*
-	m := make(map[string]int64)
-	m["beginAt"] = beginAt
-	m["incrementBy"] = incrementBy
-	m["sleep"] = sleep
-	guessersMap[guesserID] = m
+		m := make(map[string]int64)
+		m["beginAt"] = beginAt
+		m["incrementBy"] = incrementBy
+		m["sleep"] = sleep
+		guessersMap[guesserID] = m
 	*/
 	if err != nil {
 		return nil, err
@@ -103,8 +104,8 @@ func (gs *GuessServer) QueryGuesser(_ context.Context, guesserRequest *guessersp
 	// TODO: add if list is empty
 	for _, g := range guesser.GuessesMade {
 		guesses = append(guesses, &guesserspb.Guess{
-			Num: g.GuessNum,
-			Time:    g.GuessedAt.Unix(),
+			Num:  g.GuessNum,
+			Time: g.GuessedAt.Unix(),
 		})
 	}
 	return &guesserspb.QueryGuesserResponse{
@@ -175,6 +176,7 @@ func receiveGuesses() {
 
 func RealGuessers() int {
 	s := grpc.NewServer()
+	mg := guessers.NewManager(mongo.NewMongoGuesser(mongo.NewMongoConnector()))
 	gs := GuessServer{}
 	guesserspb.RegisterGuessersServer(s, &gs)
 	lis, err := net.Listen("tcp", ":6000")

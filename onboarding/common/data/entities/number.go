@@ -17,10 +17,11 @@ type GuessType struct {
 }
 
 func NewNumber(num int64) (*Number, error) {
+	var guesses []GuessType
 	number := &Number{
 		ID:      primitive.NewObjectID(),
 		Number:  num,
-		Guesses: nil,
+		Guesses: guesses,
 	}
 	return number, nil
 }
