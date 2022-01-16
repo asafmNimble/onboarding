@@ -284,8 +284,6 @@ type ApiServer struct {
 	RedisManage guessers_counters.Manager
 }
 
-var guessersCounter map[int64]int64  // TODO: move to REDIS instead of internal map
-
 func (s *ApiServer) guessNum(stream api.GuessNums_GuessNumServer) error {
 	for {
 		guessReq, err := stream.Recv()
@@ -299,7 +297,7 @@ func (s *ApiServer) guessNum(stream api.GuessNums_GuessNumServer) error {
 		response, err := internalQueryNumber(i)
 
 		// TODO: checks what guess number is it
-		pastGuesses, _ := guessersCounter[id]
+		pastGuesses, _ := s.RedisManage.GetGuesserCounter(id)
 
 		if err != nil {
 			stream.Send(&api.NumGuessResponse{
@@ -311,8 +309,11 @@ func (s *ApiServer) guessNum(stream api.GuessNums_GuessNumServer) error {
 		} else {
 
 			// TODO: updates current count
-			pastGuesses++
-			guessersCounter[id] = pastGuesses
+			if pastGuesses == -1 {
+				s.RedisManage.CreateGuessersCounter(id)
+			} else {
+				s.RedisManage.IncreaseGuesserCounter(id)
+			}
 
 			stream.Send(&api.NumGuessResponse{
 				Ok:    true,
