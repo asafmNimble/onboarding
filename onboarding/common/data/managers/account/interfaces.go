@@ -12,7 +12,7 @@ import (
 )
 
 type Reader interface {
-	Get(id primitive.ObjectID) (*entities.Account, error)
+	GetNumber(id primitive.ObjectID) (*entities.Account, error)
 	GetByName(name string, status entities.Status) (*entities.Account, error)
 	List() (*[]*entities.Account, error)
 	GetRate(accountId primitive.ObjectID, rateID primitive.ObjectID) (*entities.Rate, error)

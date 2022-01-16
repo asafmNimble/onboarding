@@ -6,7 +6,7 @@ package numberspb;
 
 service numbers {
   rpc addNum (addNumRequest) returns (addNumResponse) {}
-  rpc getNums (getNumsRequest) returns (getNumsResponse) {}
+  // rpc getNums (getNumsRequest) returns (getNumsResponse) {}
   rpc removeNum (removeNumRequest) returns (removeNumResponse) {}
   rpc query_number (queryNumberRequest) returns (queryNumberResponse) {}
 }
@@ -20,12 +20,14 @@ message addNumResponse {
   int64 num = 2;
 }
 
+/*
 message getNumsRequest {}
 
 message getNumsResponse {
   bool ok = 1;
   map<int64,int64> numsMap = 2;
 }
+*/
 
 message removeNumRequest {
   int64 num = 1;

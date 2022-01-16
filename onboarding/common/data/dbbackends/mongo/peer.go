@@ -81,7 +81,7 @@ func (p *MongoPeer) CreateOrUpdate(e *entities.Peer) (string, error) {
 	return e.ID, nil
 }
 
-func (p *MongoPeer) Get(id string) (*entities.Peer, error) {
+func (p *MongoPeer) GetNumber(id string) (*entities.Peer, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
 	defer cancel()
 	var res entities.Peer

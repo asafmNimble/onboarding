@@ -8,8 +8,9 @@ import (
 	"io"
 	"log"
 	"net"
+	"onboarding/common/data/managers/guessers"
 	"onboarding/common/grpc/api"
-	"onboarding/common/grpc/guessers"
+	guesserspb "onboarding/common/grpc/guessers"
 	"sync"
 	"time"
 )
@@ -19,10 +20,18 @@ var chanMap = make(map[int64]chan api.NumGuessResponse)
 var IDs int64 = 1
 
 type GuessServer struct {
-	guessers.UnimplementedGuessersServer
+	guesserspb.UnimplementedGuessersServer
+	MongoManage guessers.Manager
 }
 
-func (*GuessServer) AddGuesser(_ context.Context, guesserRequest *guessers.AddGuesserRequest) (*guessers.AddGuesserResponse, error) {
+func notFound(s string) bool {
+	if s == "mongo: no documents in result" {
+		return true
+	}
+	return false
+}
+
+func (*GuessServer) AddGuesser(_ context.Context, guesserRequest *guesserspb.AddGuesserRequest) (*guesserspb.AddGuesserResponse, error) {
 	guesserID := IDs
 	beginAt := guesserRequest.BeginAt
 	incrementBy := guesserRequest.IncrementBy
@@ -37,7 +46,7 @@ func (*GuessServer) AddGuesser(_ context.Context, guesserRequest *guessers.AddGu
 	inC := make(chan api.NumGuessResponse)
 	chanMap[guesserID] = inC
 	go newGuesser(guesserID, beginAt, incrementBy, sleep, outGuessC, inC)
-	return &guessers.AddGuesserResponse{GuesserID: guesserID}, nil
+	return &guesserspb.AddGuesserResponse{GuesserID: guesserID}, nil
 }
 
 func newGuesser(guesserID int64, beginAt int64, incrementBy int64, sleep int64, outC chan api.NumGuessRequest, inC chan api.NumGuessResponse) {
@@ -60,26 +69,26 @@ func newGuesser(guesserID int64, beginAt int64, incrementBy int64, sleep int64, 
 
 }
 
-func (*GuessServer) RemoveGuesser(_ context.Context, guesserRequest *guessers.RemoveGuesserRequest) (*guessers.RemoveGuesserResponse, error) {
+func (*GuessServer) RemoveGuesser(_ context.Context, guesserRequest *guesserspb.RemoveGuesserRequest) (*guesserspb.RemoveGuesserResponse, error) {
 	id := guesserRequest.GuesserID
 	_, found := guessersMap[id]
 	if !found {
 		return nil, errors.New("guesser doesn't exist in database")
 	}
 	delete(guessersMap, id)
-	return &guessers.RemoveGuesserResponse{
+	return &guesserspb.RemoveGuesserResponse{
 		Ok:        true,
 		GuesserID: id,
 	}, nil
 }
 
-func (*GuessServer) QueryGuesser(_ context.Context, guesserRequest *guessers.QueryGuesserRequest) (*guessers.QueryGuesserResponse, error) {
+func (*GuessServer) QueryGuesser(_ context.Context, guesserRequest *guesserspb.QueryGuesserRequest) (*guesserspb.QueryGuesserResponse, error) {
 	id := guesserRequest.GuesserID
 	_, found := guessersMap[id]
 	if !found {
 		return nil, errors.New("guesser doesn't exist in database")
 	}
-	return &guessers.QueryGuesserResponse{}, nil
+	return &guesserspb.QueryGuesserResponse{}, nil
 }
 
 // API Server
@@ -144,7 +153,7 @@ func receiveGuesses() {
 func RealGuessers() int {
 	s := grpc.NewServer()
 	gs := GuessServer{}
-	guessers.RegisterGuessersServer(s, &gs)
+	guesserspb.RegisterGuessersServer(s, &gs)
 	lis, err := net.Listen("tcp", ":6000")
 	if err != nil {
 		log.Fatalf("Recieved the following error : %v", err)

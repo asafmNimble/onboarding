@@ -66,7 +66,7 @@ func (s *Manager) AddRate(accountId primitive.ObjectID, project_type_id primitiv
 }
 
 func (s *Manager) GetAccount(id primitive.ObjectID) (*entities.Account, error) {
-	return s.backend.Get(id)
+	return s.backend.GetNumber(id)
 }
 
 func (s *Manager) GetAccountByName(name string) (*entities.Account, error) {

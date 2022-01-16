@@ -56,13 +56,13 @@ func (mn *MongoNumber) RemoveNum(num int64) (bool, error) {
 	return true, nil
 }
 
-func (mn *MongoNumber) Get(num int64) (*entities.Number, error) {
+func (mn *MongoNumber) GetNumber(num int64) (*entities.Number, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
 	defer cancel()
-	var res entities.Number
-	err := mn.dbCollection.FindOne(ctx, bson.D{{"number", num}}).Decode(&res)
+	var number entities.Number
+	err := mn.dbCollection.FindOne(ctx, bson.D{{"number", num}}).Decode(&number)
 	if err != nil {
 		return nil, err
 	}
-	return &res, nil
+	return &number, nil
 }

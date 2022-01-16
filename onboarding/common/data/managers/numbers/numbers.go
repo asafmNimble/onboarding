@@ -35,7 +35,7 @@ func (m *Manager) QueryNumber(num int64) (int64, *[]entities.GuessType, error) {
 }
 
 func (m *Manager) RemoveNum(num int64) (bool, error) {
-	_, err := m.backend.Get(num)
+	_, err := m.backend.GetNumber(num)
 	if err != nil {
 		return false, err
 	}
@@ -43,8 +43,8 @@ func (m *Manager) RemoveNum(num int64) (bool, error) {
 	return true, err
 }
 
-func (m *Manager) Get(num int64) (*entities.Number, error) {
-	number, err := m.backend.Get(num)
+func (m *Manager) GetNumber(num int64) (*entities.Number, error) {
+	number, err := m.backend.GetNumber(num)
 	if err != nil {
 		return nil, err
 	}
