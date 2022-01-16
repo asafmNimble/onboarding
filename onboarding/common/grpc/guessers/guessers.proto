@@ -29,10 +29,18 @@ message removeGuesserResponse {
   int64 guesserID = 2;
 }
 
+message guess {
+  int64 num = 1;
+  int64 time = 2;
+}
+
 message queryGuesserRequest {
   int64 guesserID = 1;
 }
 
 message queryGuesserResponse {
   int64 guesserID = 1;
+  repeated guess guessList = 2;
+  bool active = 3;
+
 }

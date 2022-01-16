@@ -2,7 +2,6 @@ package guessers
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"google.golang.org/grpc"
 	"io"
@@ -15,7 +14,7 @@ import (
 	"time"
 )
 
-var guessersMap = make(map[int64]map[string]int64)
+//var guessersMap = make(map[int64]map[string]int64)
 var chanMap = make(map[int64]chan api.NumGuessResponse)
 var IDs int64 = 1
 
@@ -31,17 +30,23 @@ func notFound(s string) bool {
 	return false
 }
 
-func (*GuessServer) AddGuesser(_ context.Context, guesserRequest *guesserspb.AddGuesserRequest) (*guesserspb.AddGuesserResponse, error) {
+func (gs *GuessServer) AddGuesser(_ context.Context, guesserRequest *guesserspb.AddGuesserRequest) (*guesserspb.AddGuesserResponse, error) {
 	guesserID := IDs
 	beginAt := guesserRequest.BeginAt
 	incrementBy := guesserRequest.IncrementBy
 	sleep := guesserRequest.Sleep
 	IDs++
+	_, err := gs.MongoManage.AddGuesser(guesserID, beginAt, incrementBy,sleep)
+	/*
 	m := make(map[string]int64)
 	m["beginAt"] = beginAt
 	m["incrementBy"] = incrementBy
 	m["sleep"] = sleep
 	guessersMap[guesserID] = m
+	*/
+	if err != nil {
+		return nil, err
+	}
 	// start guessing
 	inC := make(chan api.NumGuessResponse)
 	chanMap[guesserID] = inC
@@ -69,26 +74,51 @@ func newGuesser(guesserID int64, beginAt int64, incrementBy int64, sleep int64, 
 
 }
 
-func (*GuessServer) RemoveGuesser(_ context.Context, guesserRequest *guesserspb.RemoveGuesserRequest) (*guesserspb.RemoveGuesserResponse, error) {
+func (gs *GuessServer) RemoveGuesser(_ context.Context, guesserRequest *guesserspb.RemoveGuesserRequest) (*guesserspb.RemoveGuesserResponse, error) {
 	id := guesserRequest.GuesserID
-	_, found := guessersMap[id]
-	if !found {
-		return nil, errors.New("guesser doesn't exist in database")
+	_, err := gs.MongoManage.GetGuesser(id)
+	if err != nil {
+		return nil, err
 	}
-	delete(guessersMap, id)
+	_, err = gs.MongoManage.RemoveGuesser(id)
+	if err != nil {
+		return nil, err
+	}
+
+	//_, found := guessersMap[id]
+	//if !found {
+	//	return nil, errors.New("guesser doesn't exist in database")
+	//}
+	//delete(guessersMap, id)
 	return &guesserspb.RemoveGuesserResponse{
 		Ok:        true,
 		GuesserID: id,
 	}, nil
 }
 
-func (*GuessServer) QueryGuesser(_ context.Context, guesserRequest *guesserspb.QueryGuesserRequest) (*guesserspb.QueryGuesserResponse, error) {
+func (gs *GuessServer) QueryGuesser(_ context.Context, guesserRequest *guesserspb.QueryGuesserRequest) (*guesserspb.QueryGuesserResponse, error) {
 	id := guesserRequest.GuesserID
-	_, found := guessersMap[id]
-	if !found {
-		return nil, errors.New("guesser doesn't exist in database")
+	guesser, err := gs.MongoManage.GetGuesser(id)
+	if err != nil {
+		return nil, err
 	}
-	return &guesserspb.QueryGuesserResponse{}, nil
+	//_, found := guessersMap[id]
+	//if !found {
+	//	return nil, errors.New("guesser doesn't exist in database")
+	//}
+	var guesses []*guesserspb.Guess
+	// TODO: add if list is empty
+	for _, g := range guesser.GuessesMade {
+		guesses = append(guesses, &guesserspb.Guess{
+			Num: g.GuessNum,
+			Time:    g.GuessedAt.Unix(),
+		})
+	}
+	return &guesserspb.QueryGuesserResponse{
+		GuesserID: id,
+		GuessList: guesses,
+		Active:    guesser.Active,
+	}, nil
 }
 
 // API Server

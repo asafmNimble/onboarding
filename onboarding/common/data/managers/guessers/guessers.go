@@ -34,7 +34,7 @@ func (m *Manager) QueryGuesser(guesserID int64) (string, *[]entities.Guess, bool
 	return guesser, guesses, active, err
 }
 
-func (m *Manager) RemoveNum(guesserID int64) (bool, error) {
+func (m *Manager) RemoveGuesser(guesserID int64) (bool, error) {
 	_, err := m.backend.GetGuesser(guesserID)
 	if err != nil {
 		return false, err
@@ -43,7 +43,7 @@ func (m *Manager) RemoveNum(guesserID int64) (bool, error) {
 	return true, err
 }
 
-func (m *Manager) GetNumber(guesserID int64) (*entities.Guesser, error) {
+func (m *Manager) GetGuesser(guesserID int64) (*entities.Guesser, error) {
 	guesser, err := m.backend.GetGuesser(guesserID)
 	if err != nil {
 		return nil, err
