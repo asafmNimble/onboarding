@@ -1,5 +1,7 @@
 package entities
 
+// TODO: Remove this entity probably
+
 type GuesserCounter struct {
 	GuesserID int64              `bson:"guesser_id"`
 	Counter   int64              `bson:"counter"`
