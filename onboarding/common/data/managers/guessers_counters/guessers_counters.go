@@ -1,5 +1,7 @@
 package guessers_counters
 
+import "onboarding/common/data/entities"
+
 type Manager struct {
 	backend DBBackend
 }
@@ -11,15 +13,12 @@ func NewManager(b DBBackend) *Manager {
 }
 
 func (m *Manager) CreateGuessersCounter(guesserID int64) error {
-	err := m.backend.CreateGuessersCounter(guesserID)
-	if err != nil {return err}
-	return nil
+	gcm := entities.NewGuesserCounter(guesserID)
+	return m.backend.CreateGuessersCounter(gcm)
 }
 
 func (m *Manager) IncreaseGuesserCounter(guesserID int64) error {
-	err := m.backend.IncreaseGuesserCounter(guesserID)
-	if err != nil {return err}
-	return nil
+	return m.backend.IncreaseGuesserCounter(guesserID)
 }
 
 func (m *Manager) GetGuesserCounter(guesserID int64) (int64, error) {

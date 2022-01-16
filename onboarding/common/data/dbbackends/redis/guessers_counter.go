@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"github.com/go-redis/redis/v8"
+	"onboarding/common/data/entities"
 	"strconv"
 	"time"
 )
@@ -28,13 +29,13 @@ func (s *RedisGuessersCounter) CheckIfAlive() bool {
 }
  */
 
-func (s *RedisGuessersCounter) CreateGuessersCounter(guesserID int64) error {
+func (s *RedisGuessersCounter) CreateGuessersCounter(gc *entities.GuesserCounter) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
 	defer cancel()
-	gID := strconv.Itoa(int(guesserID))
-	_, err := s.client.SetNX(ctx, gID, 0, 0)
-
-	return nil
+	gID := strconv.Itoa(int(gc.GuesserID))
+	gCount := strconv.Itoa(int(gc.Counter))
+	_, err := s.client.SetNX(ctx, gID, gCount, 0).Result()
+	return err
 }
 
 func (s *RedisGuessersCounter) IncreaseGuesserCounter(guesserID int64) error {
