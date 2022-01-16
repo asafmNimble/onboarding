@@ -132,7 +132,6 @@ func queryNumber(c *gin.Context) {
 	}
 
 	var guesses []entities.GuessType
-	// TODO: add if list is empty
 
 	for _, g := range response.GuessList {
 		guesses = append(guesses, entities.GuessType{
@@ -153,7 +152,7 @@ func internalQueryNumber(numToQuery int64) (*numberspb.QueryNumberResponse, erro
 	if err != nil {
 		return nil, err
 	}
-	response, err := numClient.QueryNumber(context.Background(), &numberspb.QueryNumberRequest{Num: numToQuery})
+	response, err := numClient.QueryNumber(context.Background(), &numberspb.QueryNumberRequest{Num: numToQuery}) //TODO: add guesses count
 	if err != nil {
 		return nil, err
 	}
@@ -282,6 +281,8 @@ type ApiServer struct {
 	api.UnimplementedGuessNumsServer
 }
 
+var guessersCounter map[int64]int64  // TODO: move to REDIS instead of internal map
+
 func (s *ApiServer) guessNum(stream api.GuessNums_GuessNumServer) error {
 	for {
 		guessReq, err := stream.Recv()
@@ -291,8 +292,12 @@ func (s *ApiServer) guessNum(stream api.GuessNums_GuessNumServer) error {
 		if err != nil {
 			return err
 		}
-		i := guessReq.Num
+		id, i := guessReq.GuesserID, guessReq.Num
 		response, err := internalQueryNumber(i)
+
+		// TODO: checks what guess number is it
+		pastGuesses, _ := guessersCounter[id]
+
 		if err != nil {
 			stream.Send(&api.NumGuessResponse{
 				Ok:    false,
@@ -301,6 +306,11 @@ func (s *ApiServer) guessNum(stream api.GuessNums_GuessNumServer) error {
 				Num:   0,
 			})
 		}
+
+		// TODO: updates current count
+		pastGuesses++
+		guessersCounter[id] = pastGuesses
+
 		stream.Send(&api.NumGuessResponse{
 			Ok:    true,
 			Err:   "",

@@ -1,6 +1,0 @@
-MongoConnectionString: "mongodb://172.38.0.27:27001,172.38.0.27:27002,172.38.0.27:27003/?replicaSet=rs0"
-MongoDBName: "proxit"
-MongoConnTimeout: "10s"
-MongoReqTimeout: "60s"
-DefaultProjectName: "default"
-RedisConnectionString: "redis://172.38.0.63:6379/"

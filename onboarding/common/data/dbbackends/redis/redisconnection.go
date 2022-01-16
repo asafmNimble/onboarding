@@ -12,17 +12,6 @@ var once sync.Once
 var singletonClient redis.UniversalClient
 
 func remoteRedisConnect() (redis.UniversalClient, error) {
-	// TODO: move from parse url to sentinel parameters that will make universal client spawn a failover client
-	//dialOptions, err := redis.ParseURL(config.GetCommonConfig().RedisConnectionString)
-	//if err != nil {
-	//	logger.Logger().Errorw("error parsing redis connection string",
-	//		zap.String("RedisConnectionString", config.GetCommonConfig().RedisConnectionString))
-	//	return nil, err
-	//}
-	//uniOptions := &redis.UniversalOptions{Addrs: []string{dialOptions.Addr},
-	//	Username: dialOptions.Username,
-	//	Password: dialOptions.Password,
-	//	DB:       dialOptions.DB}
 	hostSlice := strings.Split("172.38.0.63:6379", ",")
 
 	redisClient := redis.NewUniversalClient(&redis.UniversalOptions{

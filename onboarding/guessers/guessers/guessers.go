@@ -101,7 +101,6 @@ func (gs *GuessServer) QueryGuesser(_ context.Context, guesserRequest *guessersp
 	//	return nil, errors.New("guesser doesn't exist in database")
 	//}
 	var guesses []*guesserspb.Guess
-	// TODO: add if list is empty
 	for _, g := range guesser.GuessesMade {
 		guesses = append(guesses, &guesserspb.Guess{
 			Num:  g.GuessNum,

@@ -76,7 +76,6 @@ func (ns *NumsServer) QueryNumber(_ context.Context, numReq *numberspb.QueryNumb
 	}
 	// Number found
 	var guesses []*numberspb.Guess
-	// TODO: add if list is empty
 	for _, g := range number.Guesses {
 		guesses = append(guesses, &numberspb.Guess{
 			Guesser: g.FoundBy,
