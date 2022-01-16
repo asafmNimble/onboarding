@@ -35,19 +35,7 @@ func (mg *MongoGuesser) AddGuesser(g *entities.Guesser) (string, error) {
 	return g.ID.Hex(), nil
 }
 
-func (mg *MongoGuesser) QueryGuesser(g *entities.Guesser) (string, *[]entities.Guess, bool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
-	defer cancel()
-	var guesser entities.Guesser
-	err := mg.dbCollection.FindOne(ctx, bson.D{{"ID", g.GuesserID}, {"guesses", g.GuessesMade}, {"active", g.Active}}).Decode(&guesser)
-	guessesMade := &guesser.GuessesMade
-	if err != nil {
-		return g.ID.Hex(), nil, false, err
-	}
-	return g.ID.Hex(), guessesMade, guesser.Active, nil
-}
-
-func (mn *MongoNumber) RemoveGuesser(guesserID int64) (bool, error) {
+func (mn *MongoGuesser) RemoveGuesser(guesserID int64) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
 	defer cancel()
 	_, err := mn.dbCollection.DeleteOne(ctx, bson.D{{"ID", guesserID}})
@@ -57,11 +45,25 @@ func (mn *MongoNumber) RemoveGuesser(guesserID int64) (bool, error) {
 	return true, nil
 }
 
-func (mg *MongoGuesser) GetGuesser(g *entities.Guesser) (*entities.Guesser, error) {
+func (mg *MongoGuesser) QueryGuesser(guesserID int64) (string, *[]entities.Guess, bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
 	defer cancel()
 	var guesser entities.Guesser
-	err := mg.dbCollection.FindOne(ctx, bson.D{{"ID", g.GuesserID}, {"guesses", g.GuessesMade}, {"active", g.Active}}).Decode(&guesser)
+	//err := mg.dbCollection.FindOne(ctx, bson.D{{"ID", g.GuesserID}, {"guesses", g.GuessesMade}, {"active", g.Active}}).Decode(&guesser)
+	err := mg.dbCollection.FindOne(ctx, bson.D{{"ID", guesserID}}).Decode(&guesser)
+	guessesMade := &guesser.GuessesMade
+	if err != nil {
+		return guesser.ID.Hex(), nil, false, err
+	}
+	return guesser.ID.Hex(), guessesMade, guesser.Active, nil
+}
+
+func (mg *MongoGuesser) GetGuesser(guesserID int64) (*entities.Guesser, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
+	defer cancel()
+	var guesser entities.Guesser
+	//err := mg.dbCollection.FindOne(ctx, bson.D{{"ID", g.GuesserID}, {"guesses", g.GuessesMade}, {"active", g.Active}}).Decode(&guesser)
+	err := mg.dbCollection.FindOne(ctx, bson.D{{"ID", guesserID}}).Decode(&guesser)
 	if err != nil {
 		return nil, err
 	}

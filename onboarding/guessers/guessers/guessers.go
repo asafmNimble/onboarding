@@ -177,7 +177,7 @@ func receiveGuesses() {
 func RealGuessers() int {
 	s := grpc.NewServer()
 	mg := guessers.NewManager(mongo.NewMongoGuesser(mongo.NewMongoConnector()))
-	gs := GuessServer{}
+	gs := GuessServer{MongoManage: *mg}
 	guesserspb.RegisterGuessersServer(s, &gs)
 	lis, err := net.Listen("tcp", ":6000")
 	if err != nil {
