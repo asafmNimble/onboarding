@@ -8,7 +8,9 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"onboarding/common/data/dbbackends/redis"
 	"onboarding/common/data/entities"
+	"onboarding/common/data/managers/guessers_counters"
 	"onboarding/common/grpc/api"
 	guesserspb "onboarding/common/grpc/guessers"
 	numberspb "onboarding/common/grpc/numbers"
@@ -279,6 +281,7 @@ func queryGuesser(c *gin.Context) {
 
 type ApiServer struct {
 	api.UnimplementedGuessNumsServer
+	RedisManage guessers_counters.Manager
 }
 
 var guessersCounter map[int64]int64  // TODO: move to REDIS instead of internal map
@@ -305,18 +308,19 @@ func (s *ApiServer) guessNum(stream api.GuessNums_GuessNumServer) error {
 				Found: false,
 				Num:   0,
 			})
+		} else {
+
+			// TODO: updates current count
+			pastGuesses++
+			guessersCounter[id] = pastGuesses
+
+			stream.Send(&api.NumGuessResponse{
+				Ok:    true,
+				Err:   "",
+				Found: response.Ok,
+				Num:   response.Num,
+			})
 		}
-
-		// TODO: updates current count
-		pastGuesses++
-		guessersCounter[id] = pastGuesses
-
-		stream.Send(&api.NumGuessResponse{
-			Ok:    true,
-			Err:   "",
-			Found: response.Ok,
-			Num:   response.Num,
-		})
 	}
 }
 
@@ -340,7 +344,8 @@ func RealApi() int {
 
 	// Guessing numbers server
 	s := grpc.NewServer()
-	as := ApiServer{}
+	rm := guessers_counters.NewManager(redis.NewRedisGuessersCounter())
+	as := ApiServer{RedisManage: *rm}
 	api.RegisterGuessNumsServer(s, &as)
 	lis, err := net.Listen("tcp", ":5000")
 	if err != nil {
