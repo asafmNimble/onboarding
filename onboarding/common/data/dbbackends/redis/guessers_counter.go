@@ -22,7 +22,7 @@ func (s *RedisGuessersCounter) CreateGuessersCounter(gc *entities.GuesserCounter
 	defer cancel()
 	gID := strconv.Itoa(int(gc.GuesserID))
 	gCount := strconv.Itoa(int(gc.Counter))
-	_, err := s.client.SetNX(ctx, gID, gCount, 0).Result()
+	_, err := s.client.SetNX(ctx, gID, gCount, 5*time.Minute).Result()
 	return err
 }
 
@@ -34,6 +34,7 @@ func (s *RedisGuessersCounter) IncreaseGuesserCounter(guesserID int64) (int64, e
 	if err != nil {
 		return 0, err
 	}
+	s.client.Expire(context.Background(), gID, 5*time.Minute)
 	return counter, nil
 }
 
@@ -45,6 +46,7 @@ func (s *RedisGuessersCounter) GetGuesserCounter(guesserID int64) (int64, error)
 	if err != nil {
 		return -1, err
 	}
+	s.client.Expire(context.Background(), gID, 5*time.Minute)
 	val, _ := strconv.Atoi(valStr)
 	return int64(val), nil
 }
