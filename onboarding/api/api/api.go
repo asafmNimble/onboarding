@@ -74,23 +74,6 @@ func addNum(c *gin.Context) {
 	})
 }
 
-func getNums(c *gin.Context) {
-	numClient, err := getNumClient()
-	if err != nil {
-		c.Error(err)
-		return
-	}
-	response, err := numClient.GetNums(context.Background(), &numberspb.GetNumsRequest{})
-	if err != nil {
-		c.Error(err)
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"status": "Successful",
-		"nums":   response.NumsMap,
-	})
-}
-
 type removeNumInput struct {
 	Num int64 `json:"num"`
 }
@@ -299,34 +282,37 @@ func (s *ApiServer) GuessNum(stream api.GuessNums_GuessNumServer) error {
 		id, i := guessReq.GuesserID, guessReq.Num
 		response, err := internalQueryNumber(i)
 		if err != nil {
-			stream.Send(&api.NumGuessResponse{
+			err = stream.Send(&api.NumGuessResponse{
 				Ok:        false,
 				Err:       err.Error(),
 				Found:     false,
 				Num:       0,
 				GuesserID: id,
 			})
+			if err != nil {return err}
 			continue
 		}
 		_, err = s.RedisManage.IncreaseGuesserCounter(id)
 		if err != nil {
-			stream.Send(&api.NumGuessResponse{
+			err = stream.Send(&api.NumGuessResponse{
 				Ok:        false,
 				Err:       err.Error(),
 				Found:     false,
 				Num:       0,
 				GuesserID: id,
 			})
+			if err != nil {return err}
 			continue
 		}
 		fmt.Printf("API server, GuessNum, Will send %v on channel\n", response.Num)
-		stream.Send(&api.NumGuessResponse{
+		err = stream.Send(&api.NumGuessResponse{
 			Ok:        true,
 			Err:       "",
 			Found:     response.Ok,
 			Num:       response.Num,
 			GuesserID: id,
 		})
+		if err != nil {return err}
 		fmt.Printf("API server, GuessNum, Sent %v on channel\n", response.Num)
 
 	}
@@ -339,7 +325,6 @@ func RealApi() int {
 	//API client
 	router := gin.Default()
 	router.POST("/addNum", addNum)
-	router.GET("/getNums", getNums)
 	router.DELETE("/removeNum", removeNum)
 	router.GET("/queryNumber", queryNumber)
 

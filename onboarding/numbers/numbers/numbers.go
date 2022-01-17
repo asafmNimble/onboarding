@@ -11,10 +11,6 @@ import (
 	numberspb "onboarding/common/grpc/numbers"
 )
 
-/*
-var numMap = make(map[int64]int64)
-*/
-
 type NumsServer struct { //Defined a server that executes the far side functions
 	numberspb.UnimplementedNumbersServer
 	MongoManage numbers.Manager
@@ -93,15 +89,6 @@ func (ns *NumsServer) QueryNumber(_ context.Context, numReq *numberspb.QueryNumb
 	}, nil
 }
 
-/*
-// TODO: delete this func
-func (ns *NumsServer) GetNums(_ context.Context, numReq *numberspb.GetNumsRequest) (*numberspb.GetNumsResponse, error) {
-	return &numberspb.GetNumsResponse{
-		Ok:      true,
-		NumsMap: numMap,
-	}, nil
-}
-*/
 func RealNumbers() int {
 	s := grpc.NewServer()
 	mn := numbers.NewManager(mongo.NewMongoNumber(mongo.NewMongoConnector()))

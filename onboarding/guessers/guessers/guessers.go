@@ -15,7 +15,6 @@ import (
 	"time"
 )
 
-//var guessersMap = make(map[int64]map[string]int64)
 var chanMap = make(map[int64]chan api.NumGuessResponse)
 var killGuessers = make(map[int64]bool)
 var IDs int64 = 1
@@ -32,13 +31,6 @@ func (gs *GuessServer) AddGuesser(_ context.Context, guesserRequest *guesserspb.
 	sleep := guesserRequest.Sleep
 	IDs++
 	_, err := gs.MongoManage.AddGuesser(guesserID, beginAt, incrementBy, sleep)
-	/*
-		m := make(map[string]int64)
-		m["beginAt"] = beginAt
-		m["incrementBy"] = incrementBy
-		m["sleep"] = sleep
-		guessersMap[guesserID] = m
-	*/
 	if err != nil {
 		return nil, err
 	}
@@ -85,11 +77,6 @@ func (gs *GuessServer) RemoveGuesser(_ context.Context, guesserRequest *guessers
 		return nil, err
 	}
 	killGuessers[id] = true
-	//_, found := guessersMap[id]
-	//if !found {
-	//	return nil, errors.New("guesser doesn't exist in database")
-	//}
-	//delete(guessersMap, id)
 	return &guesserspb.RemoveGuesserResponse{
 		Ok:        true,
 		GuesserID: id,
@@ -102,10 +89,6 @@ func (gs *GuessServer) QueryGuesser(_ context.Context, guesserRequest *guessersp
 	if err != nil {
 		return nil, err
 	}
-	//_, found := guessersMap[id]
-	//if !found {
-	//	return nil, errors.New("guesser doesn't exist in database")
-	//}
 	var guesses []*guesserspb.Guess
 	for _, g := range guesser.GuessesMade {
 		guesses = append(guesses, &guesserspb.Guess{
@@ -174,8 +157,8 @@ func receiveGuesses(stream api.GuessNums_GuessNumClient) {
 		resp, err := stream.Recv()
 		if err != nil {
 			fmt.Println(err.Error())
+			return
 		}
-		// TODO: err check
 		guesserId := resp.GuesserID
 		fmt.Printf("Guessers Client, receiveGuesses, GuesserID is: %v\n", resp.GuesserID)
 		inC := chanMap[guesserId]
