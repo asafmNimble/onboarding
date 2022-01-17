@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 	"io"
@@ -154,7 +155,7 @@ func internalQueryNumber(numToQuery int64) (*numberspb.QueryNumberResponse, erro
 	if err != nil {
 		return nil, err
 	}
-	response, err := numClient.QueryNumber(context.Background(), &numberspb.QueryNumberRequest{Num: numToQuery}) //TODO: add guesses count
+	response, err := numClient.QueryNumber(context.Background(), &numberspb.QueryNumberRequest{Num: numToQuery})
 	if err != nil {
 		return nil, err
 	}
@@ -284,9 +285,11 @@ type ApiServer struct {
 	RedisManage guessers_counters.Manager
 }
 
-func (s *ApiServer) guessNum(stream api.GuessNums_GuessNumServer) error {
+func (s *ApiServer) GuessNum(stream api.GuessNums_GuessNumServer) error {
 	for {
+		fmt.Println("API server, GuessNum, receiving guesses on stream")
 		guessReq, err := stream.Recv()
+		fmt.Printf("API server, GuessNum, Received %v on channel\n", guessReq.Num)
 		if err == io.EOF {
 			return nil
 		}
@@ -295,38 +298,46 @@ func (s *ApiServer) guessNum(stream api.GuessNums_GuessNumServer) error {
 		}
 		id, i := guessReq.GuesserID, guessReq.Num
 		response, err := internalQueryNumber(i)
-
-		// TODO: checks what guess number is it
-		pastGuesses, _ := s.RedisManage.GetGuesserCounter(id)
-
 		if err != nil {
 			stream.Send(&api.NumGuessResponse{
-				Ok:    false,
-				Err:   err.Error(),
-				Found: false,
-				Num:   0,
+				Ok:        false,
+				Err:       err.Error(),
+				Found:     false,
+				Num:       0,
+				GuesserID: id,
 			})
-		} else {
-
-			// TODO: updates current count
-			if pastGuesses == -1 {
-				s.RedisManage.CreateGuessersCounter(id)
-			} else {
-				s.RedisManage.IncreaseGuesserCounter(id)
-			}
-
-			stream.Send(&api.NumGuessResponse{
-				Ok:    true,
-				Err:   "",
-				Found: response.Ok,
-				Num:   response.Num,
-			})
+			continue
 		}
+		_, err = s.RedisManage.IncreaseGuesserCounter(id)
+		if err != nil {
+			stream.Send(&api.NumGuessResponse{
+				Ok:        false,
+				Err:       err.Error(),
+				Found:     false,
+				Num:       0,
+				GuesserID: id,
+			})
+			continue
+		}
+		fmt.Printf("API server, GuessNum, Will send %v on channel\n", response.Num)
+		stream.Send(&api.NumGuessResponse{
+			Ok:        true,
+			Err:       "",
+			Found:     response.Ok,
+			Num:       response.Num,
+			GuesserID: id,
+		})
+		fmt.Printf("API server, GuessNum, Sent %v on channel\n", response.Num)
+
 	}
 }
 
 func RealApi() int {
-	router := gin.Default()
+	// Guessing numbers server
+	go serverForGuessRequests()
+
+	//API client
+		router := gin.Default()
 	router.POST("/addNum", addNum)
 	router.GET("/getNums", getNums)
 	router.DELETE("/removeNum", removeNum)
@@ -342,8 +353,10 @@ func RealApi() int {
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Println("%V", err)
 	}
+	return 0
+}
 
-	// Guessing numbers server
+func serverForGuessRequests() {
 	s := grpc.NewServer()
 	rm := guessers_counters.NewManager(redis.NewRedisGuessersCounter())
 	as := ApiServer{RedisManage: *rm}
@@ -355,6 +368,4 @@ func RealApi() int {
 	if err := s.Serve(lis); err != nil { // assigns lis' port to s
 		log.Fatalf("Recieved the following error : %v", err)
 	}
-
-	return 0
 }

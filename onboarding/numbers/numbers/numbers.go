@@ -68,14 +68,18 @@ func (ns *NumsServer) RemoveNum(_ context.Context, numReq *numberspb.RemoveNumRe
 func (ns *NumsServer) QueryNumber(_ context.Context, numReq *numberspb.QueryNumberRequest) (*numberspb.QueryNumberResponse, error) {
 	i := numReq.Num
 	number, err := ns.MongoManage.GetNumber(i)
+	var guesses []*numberspb.Guess
 	if err != nil && notFound(err.Error()) {
-		return nil, errors.New("number doesn't exist in database")
+		return &numberspb.QueryNumberResponse{
+			Ok:        false,
+			Num:       i,
+			GuessList: guesses,
+		}, nil
 	}
 	if err != nil {
 		return nil, err
 	}
 	// Number found
-	var guesses []*numberspb.Guess
 	for _, g := range number.Guesses {
 		guesses = append(guesses, &numberspb.Guess{
 			Guesser: g.FoundBy,
