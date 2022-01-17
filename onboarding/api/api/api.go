@@ -337,7 +337,7 @@ func RealApi() int {
 	go serverForGuessRequests()
 
 	//API client
-		router := gin.Default()
+	router := gin.Default()
 	router.POST("/addNum", addNum)
 	router.GET("/getNums", getNums)
 	router.DELETE("/removeNum", removeNum)

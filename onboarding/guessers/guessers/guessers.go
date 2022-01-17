@@ -17,6 +17,7 @@ import (
 
 //var guessersMap = make(map[int64]map[string]int64)
 var chanMap = make(map[int64]chan api.NumGuessResponse)
+var killGuessers = make(map[int64]bool)
 var IDs int64 = 1
 
 type GuessServer struct {
@@ -44,6 +45,7 @@ func (gs *GuessServer) AddGuesser(_ context.Context, guesserRequest *guesserspb.
 	// start guessing
 	inC := make(chan api.NumGuessResponse)
 	chanMap[guesserID] = inC
+	killGuessers[guesserID] = false
 	go newGuesser(guesserID, beginAt, incrementBy, sleep, outGuessC, inC)
 	return &guesserspb.AddGuesserResponse{GuesserID: guesserID}, nil
 }
@@ -51,7 +53,7 @@ func (gs *GuessServer) AddGuesser(_ context.Context, guesserRequest *guesserspb.
 func newGuesser(guesserID int64, beginAt int64, incrementBy int64, sleep int64, outC chan api.NumGuessRequest, inC chan api.NumGuessResponse) {
 	fmt.Println("started a new goroutine guesser")
 	numToGuess := beginAt
-	for {
+	for !killGuessers[guesserID] {
 		// guess beginAt
 		fmt.Printf("Guessers Client, newGuesser, Guessing %v\n", numToGuess)
 		outC <- api.NumGuessRequest{Num: numToGuess, GuesserID: guesserID}
@@ -69,7 +71,7 @@ func newGuesser(guesserID int64, beginAt int64, incrementBy int64, sleep int64, 
 		// incrementBy
 		numToGuess += incrementBy
 	}
-
+	return
 }
 
 func (gs *GuessServer) RemoveGuesser(_ context.Context, guesserRequest *guesserspb.RemoveGuesserRequest) (*guesserspb.RemoveGuesserResponse, error) {
@@ -82,7 +84,7 @@ func (gs *GuessServer) RemoveGuesser(_ context.Context, guesserRequest *guessers
 	if err != nil {
 		return nil, err
 	}
-
+	killGuessers[id] = true
 	//_, found := guessersMap[id]
 	//if !found {
 	//	return nil, errors.New("guesser doesn't exist in database")
