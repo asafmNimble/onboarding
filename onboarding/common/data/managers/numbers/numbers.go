@@ -50,3 +50,11 @@ func (m *Manager) GetNumber(num int64) (*entities.Number, error) {
 	}
 	return number, nil
 }
+
+func (m *Manager) UpdateGuessForNumber(num int64, guess *entities.GuessType) (string, error) {
+	id, err := m.backend.UpdateGuessForNumber(num, guess)
+	if err != nil {
+		return "", err
+	}
+	return id, nil
+}

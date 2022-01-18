@@ -9,9 +9,11 @@ import (
 	"math"
 	"net"
 	"onboarding/common/data/dbbackends/mongo"
+	"onboarding/common/data/entities"
 	"onboarding/common/data/managers/guessers"
 	"onboarding/common/grpc/api"
 	guesserspb "onboarding/common/grpc/guessers"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -97,13 +99,25 @@ func newGuesser(guesserID int64, beginAt int64, incrementBy int64, sleep int64, 
 			fmt.Printf("Recieved the following error : %v", resp.Err)
 		}
 		if resp.Found {
-			// TODO: Read in Onboarding what needs to be done - initiate find of closest bigger prime
 			primeNum := findPrime(resp.Num)
 			timeFound := time.Now()
 			currPrimeDetails := createPrimeDetails(resp.GuesserID, timeFound, resp.Num)
 			currPrimeList := primesMap[primeNum]
 			currPrimeList = append(currPrimeList, currPrimeDetails)
 			primesMap[primeNum] = currPrimeList
+
+			// Update Number guessers list
+			currGuess := entities.GuessType{
+				FoundBy: strconv.Itoa(int(resp.GuesserID)),
+				FoundAt: timeFound,
+			}
+			// TODO: add to number.guess the guess - send request to Numbers Server to Update the number's guessers list
+
+			// TODO: add to guesser.guessesMade the guess - send request to Guessers Server to Update guesser's list
+			correctGuess := entities.Guess{
+				GuessNum:  numToGuess,
+				GuessedAt: timeFound,
+			}
 		}
 		// sleep sleep
 		time.Sleep(time.Duration(sleep) * time.Second)

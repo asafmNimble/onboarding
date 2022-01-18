@@ -69,5 +69,16 @@ func (mg *MongoGuesser) GetGuesser(guesserID int64) (*entities.Guesser, error) {
 		return nil, err
 	}
 	return &guesser, nil
+}
 
+func (mg *MongoGuesser) UpdateGuessedNumForGuesser(guesserID int64, guess *entities.Guess) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
+	defer cancel()
+	guesser, err := mg.GetGuesser(guesserID)
+	if err != nil {return "", err}
+	guessedNums := guesser.GuessesMade
+	guessedNums = append(guessedNums, *guess)
+	_, err = mg.dbCollection.UpdateOne(ctx, bson.D{{"guesser_id", guesser.GuesserID}}, bson.D{{"$set", bson.D{{"guesses_made", guessedNums}}}})
+	if err != nil {return "", err}
+	return guesser.ID.Hex(), err
 }

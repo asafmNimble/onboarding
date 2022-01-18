@@ -27,7 +27,7 @@ func NewMongoNumber(dbc DBConnector) *MongoNumber {
 func (mn *MongoNumber) AddNum(n *entities.Number) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
 	defer cancel()
-	_, err := mn.dbCollection.InsertOne(ctx, bson.D{{"_id", n.ID}, {"number", n.Number}, {"guesses", n.Guesses}}) // UpdateOne(ctx, bson.D{{"_id", n.ID}}, bson.D{{"$set", bson.D{{"number", n.Number}, {"active", n.Active}, {"guesses", n.Guesses}}}})
+	_, err := mn.dbCollection.InsertOne(ctx, bson.D{{"_id", n.ID}, {"number", n.Number}, {"guesses", n.Guesses}})
 	if err != nil {
 		return n.ID.Hex(), err
 	}
@@ -65,4 +65,20 @@ func (mn *MongoNumber) GetNumber(num int64) (*entities.Number, error) {
 		return nil, err
 	}
 	return &number, nil
+}
+
+func (mn *MongoNumber) UpdateGuessForNumber(num int64, guess *entities.GuessType) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
+	defer cancel()
+	currNum, err := mn.GetNumber(num)
+	if err != nil {
+		return "", err
+	}
+	guesses := currNum.Guesses
+	guesses = append(guesses, *guess)
+	_, err =  mn.dbCollection.UpdateOne(ctx, bson.D{{"_id", currNum.ID}}, bson.D{{"$set", bson.D{{"guesses", guesses}}}})
+	if err != nil {
+		return currNum.ID.Hex(), err
+	}
+	return currNum.ID.Hex(), nil
 }

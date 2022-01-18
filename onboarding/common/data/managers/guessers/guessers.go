@@ -50,3 +50,11 @@ func (m *Manager) GetGuesser(guesserID int64) (*entities.Guesser, error) {
 	}
 	return guesser, nil
 }
+
+func (m *Manager) UpdateGuessedNumForGuesser(guesserID int64, guess *entities.Guess) (string, error) {
+	id, err := m.backend.UpdateGuessedNumForGuesser(guesserID, guess)
+	if err != nil {
+		return "", err
+	}
+	return id, nil
+}
