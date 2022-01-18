@@ -21,6 +21,7 @@ type GuessersClient interface {
 	AddGuesser(ctx context.Context, in *AddGuesserRequest, opts ...grpc.CallOption) (*AddGuesserResponse, error)
 	RemoveGuesser(ctx context.Context, in *RemoveGuesserRequest, opts ...grpc.CallOption) (*RemoveGuesserResponse, error)
 	QueryGuesser(ctx context.Context, in *QueryGuesserRequest, opts ...grpc.CallOption) (*QueryGuesserResponse, error)
+	QueryPrimes(ctx context.Context, in *QueryPrimesRequest, opts ...grpc.CallOption) (*QueryPrimesResponse, error)
 }
 
 type guessersClient struct {
@@ -58,6 +59,15 @@ func (c *guessersClient) QueryGuesser(ctx context.Context, in *QueryGuesserReque
 	return out, nil
 }
 
+func (c *guessersClient) QueryPrimes(ctx context.Context, in *QueryPrimesRequest, opts ...grpc.CallOption) (*QueryPrimesResponse, error) {
+	out := new(QueryPrimesResponse)
+	err := c.cc.Invoke(ctx, "/guesserspb.guessers/queryPrimes", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GuessersServer is the server API for Guessers service.
 // All implementations must embed UnimplementedGuessersServer
 // for forward compatibility
@@ -65,6 +75,7 @@ type GuessersServer interface {
 	AddGuesser(context.Context, *AddGuesserRequest) (*AddGuesserResponse, error)
 	RemoveGuesser(context.Context, *RemoveGuesserRequest) (*RemoveGuesserResponse, error)
 	QueryGuesser(context.Context, *QueryGuesserRequest) (*QueryGuesserResponse, error)
+	QueryPrimes(context.Context, *QueryPrimesRequest) (*QueryPrimesResponse, error)
 	mustEmbedUnimplementedGuessersServer()
 }
 
@@ -80,6 +91,9 @@ func (UnimplementedGuessersServer) RemoveGuesser(context.Context, *RemoveGuesser
 }
 func (UnimplementedGuessersServer) QueryGuesser(context.Context, *QueryGuesserRequest) (*QueryGuesserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method QueryGuesser not implemented")
+}
+func (UnimplementedGuessersServer) QueryPrimes(context.Context, *QueryPrimesRequest) (*QueryPrimesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method QueryPrimes not implemented")
 }
 func (UnimplementedGuessersServer) mustEmbedUnimplementedGuessersServer() {}
 
@@ -148,6 +162,24 @@ func _Guessers_QueryGuesser_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Guessers_QueryPrimes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryPrimesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GuessersServer).QueryPrimes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/guesserspb.guessers/queryPrimes",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GuessersServer).QueryPrimes(ctx, req.(*QueryPrimesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Guessers_ServiceDesc is the grpc.ServiceDesc for Guessers service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -166,6 +198,10 @@ var Guessers_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "queryGuesser",
 			Handler:    _Guessers_QueryGuesser_Handler,
+		},
+		{
+			MethodName: "queryPrimes",
+			Handler:    _Guessers_QueryPrimes_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

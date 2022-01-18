@@ -8,6 +8,7 @@ service guessers {
   rpc addGuesser (addGuesserRequest) returns (addGuesserResponse) {}
   rpc removeGuesser (removeGuesserRequest) returns (removeGuesserResponse) {}
   rpc queryGuesser (queryGuesserRequest) returns (queryGuesserResponse) {}
+  rpc queryPrimes (queryPrimesRequest) returns (queryPrimesResponse) {}
 }
 
 message addGuesserRequest {
@@ -43,4 +44,24 @@ message queryGuesserResponse {
   repeated guess guessList = 2;
   bool active = 3;
 
+}
+
+message queryPrimesRequest {
+  int64 prime = 1;
+}
+
+message primedets {
+  int64 guesserID = 2;
+  int64 time = 3;
+  int64 originNum = 4;
+}
+
+message prime {
+  int64 prime = 1;
+  repeated primedets primeList =2;
+}
+
+message queryPrimesResponse {
+  bool ok = 1;
+  repeated prime primes = 2;
 }
