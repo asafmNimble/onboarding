@@ -117,7 +117,6 @@ func newGuesser(guesserID int64, beginAt int64, incrementBy int64, sleep int64, 
 			if err != nil {
 				log.Fatalf("GuesserID: %v encountered the following error : %v", guesserID, err)
 			}
-			// TODO: add to number.guess the guess - send request to Numbers Server to Update the number's guessers list
 
 			correctGuess := entities.Guess{
 				GuessNum:  numToGuess,
