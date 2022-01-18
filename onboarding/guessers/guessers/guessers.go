@@ -6,6 +6,7 @@ import (
 	"google.golang.org/grpc"
 	"io"
 	"log"
+	"math"
 	"net"
 	"onboarding/common/data/dbbackends/mongo"
 	"onboarding/common/data/managers/guessers"
@@ -23,6 +24,46 @@ type GuessServer struct {
 	guesserspb.UnimplementedGuessersServer
 	MongoManage guessers.Manager
 }
+
+// Local machinery
+type PrimeDetails struct {
+	guesserID   int64
+	timeGuessed time.Time
+	originNum   int64
+}
+
+var primesMap = make(map[int64][]PrimeDetails)
+
+func findPrime(originNum int64) int64 {
+	if originNum == 1 {
+		return 2
+	} else if originNum == 2 {
+		return 3
+	}
+	base := 2
+	checkIfPrime := originNum + 1
+	if checkIfPrime%2 == 0 {
+		checkIfPrime++
+	}
+	for {
+		basePowCheckIfPrimes := math.Pow(float64(base), float64(checkIfPrime-1))
+		fermatLittletheorm := int64(basePowCheckIfPrimes) % checkIfPrime
+		if fermatLittletheorm == 1 {
+			return checkIfPrime
+		}
+		checkIfPrime = checkIfPrime + 2
+	}
+}
+
+func createPrimeDetails(guesserID int64, timeGuessed time.Time, originNum int64) PrimeDetails {
+	return PrimeDetails{
+		guesserID:   guesserID,
+		timeGuessed: timeGuessed,
+		originNum:   originNum,
+	}
+}
+
+// end of local machinery
 
 func (gs *GuessServer) AddGuesser(_ context.Context, guesserRequest *guesserspb.AddGuesserRequest) (*guesserspb.AddGuesserResponse, error) {
 	guesserID := IDs
@@ -57,6 +98,12 @@ func newGuesser(guesserID int64, beginAt int64, incrementBy int64, sleep int64, 
 		}
 		if resp.Found {
 			// TODO: Read in Onboarding what needs to be done - initiate find of closest bigger prime
+			primeNum := findPrime(resp.Num)
+			timeFound := time.Now()
+			currPrimeDetails := createPrimeDetails(resp.GuesserID, timeFound, resp.Num)
+			currPrimeList := primesMap[primeNum]
+			currPrimeList = append(currPrimeList, currPrimeDetails)
+			primesMap[primeNum] = currPrimeList
 		}
 		// sleep sleep
 		time.Sleep(time.Duration(sleep) * time.Second)
@@ -100,6 +147,29 @@ func (gs *GuessServer) QueryGuesser(_ context.Context, guesserRequest *guessersp
 		GuesserID: id,
 		GuessList: guesses,
 		Active:    guesser.Active,
+	}, nil
+}
+
+func (gs *GuessServer) QueryPrimes(_ context.Context, primesRequest *guesserspb.QueryPrimesRequest) (*guesserspb.QueryPrimesResponse, error) {
+	// TODO: move to mongo
+	var primes []*guesserspb.Prime
+	for p, _ := range primesMap {
+		var primeList []*guesserspb.Primedets
+		for _, dets := range primesMap[p] {
+			primeList = append(primeList, &guesserspb.Primedets{
+				GuesserID: dets.guesserID,
+				Time:      dets.timeGuessed.Unix(),
+				OriginNum: dets.originNum,
+			})
+		}
+		primes = append(primes, &guesserspb.Prime{
+			Prime:     p,
+			PrimeList: primeList,
+		})
+	}
+	return &guesserspb.QueryPrimesResponse{
+		Ok:     true,
+		Primes: primes,
 	}, nil
 }
 

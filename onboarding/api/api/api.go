@@ -263,6 +263,41 @@ func queryGuesser(c *gin.Context) {
 	})
 }
 
+func queryPrimes(c *gin.Context) {
+	guessClient, err := getGuessersClient()
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	response, err := guessClient.QueryPrimes(context.Background(), &guesserspb.QueryPrimesRequest{})
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	var primes []entities.Prime
+
+	for _, p := range response.Primes {
+		var primeDets []entities.PrimeDetails
+		for _, dets := range p.PrimeList {
+			primeDets = append(primeDets, entities.PrimeDetails{
+				GuesserID: dets.GuesserID,
+				Time:      time.Unix(dets.Time, 0),
+				OriginNum: dets.OriginNum,
+			})
+		}
+		primes = append(primes, entities.Prime{
+			Prime:     p.Prime,
+			PrimeDets: primeDets,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":      response.Ok,
+		"primes_list": response.Primes,
+	})
+}
+
 type ApiServer struct {
 	api.UnimplementedGuessNumsServer
 	RedisManage guessers_counters.Manager
@@ -289,7 +324,9 @@ func (s *ApiServer) GuessNum(stream api.GuessNums_GuessNumServer) error {
 				Num:       0,
 				GuesserID: id,
 			})
-			if err != nil {return err}
+			if err != nil {
+				return err
+			}
 			continue
 		}
 		_, err = s.RedisManage.IncreaseGuesserCounter(id)
@@ -301,7 +338,9 @@ func (s *ApiServer) GuessNum(stream api.GuessNums_GuessNumServer) error {
 				Num:       0,
 				GuesserID: id,
 			})
-			if err != nil {return err}
+			if err != nil {
+				return err
+			}
 			continue
 		}
 		fmt.Printf("API server, GuessNum, Will send %v on channel\n", response.Num)
@@ -312,7 +351,9 @@ func (s *ApiServer) GuessNum(stream api.GuessNums_GuessNumServer) error {
 			Num:       response.Num,
 			GuesserID: id,
 		})
-		if err != nil {return err}
+		if err != nil {
+			return err
+		}
 		fmt.Printf("API server, GuessNum, Sent %v on channel\n", response.Num)
 
 	}
@@ -331,6 +372,8 @@ func RealApi() int {
 	router.POST("/addGuesser", addGuesser)
 	router.DELETE("/removeGuesser", removeGuesser)
 	router.GET("/queryGuesser", queryGuesser)
+	router.GET("/queryPrimes", queryPrimes)
+
 	server := http.Server{
 		Addr:    "localhost:8080",
 		Handler: router,

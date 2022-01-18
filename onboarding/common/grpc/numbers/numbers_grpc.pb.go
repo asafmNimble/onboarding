@@ -19,7 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type NumbersClient interface {
 	AddNum(ctx context.Context, in *AddNumRequest, opts ...grpc.CallOption) (*AddNumResponse, error)
-	GetNums(ctx context.Context, in *GetNumsRequest, opts ...grpc.CallOption) (*GetNumsResponse, error)
+	// rpc getNums (getNumsRequest) returns (getNumsResponse) {}
 	RemoveNum(ctx context.Context, in *RemoveNumRequest, opts ...grpc.CallOption) (*RemoveNumResponse, error)
 	QueryNumber(ctx context.Context, in *QueryNumberRequest, opts ...grpc.CallOption) (*QueryNumberResponse, error)
 }
@@ -35,15 +35,6 @@ func NewNumbersClient(cc grpc.ClientConnInterface) NumbersClient {
 func (c *numbersClient) AddNum(ctx context.Context, in *AddNumRequest, opts ...grpc.CallOption) (*AddNumResponse, error) {
 	out := new(AddNumResponse)
 	err := c.cc.Invoke(ctx, "/numberspb.numbers/addNum", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *numbersClient) GetNums(ctx context.Context, in *GetNumsRequest, opts ...grpc.CallOption) (*GetNumsResponse, error) {
-	out := new(GetNumsResponse)
-	err := c.cc.Invoke(ctx, "/numberspb.numbers/getNums", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +64,7 @@ func (c *numbersClient) QueryNumber(ctx context.Context, in *QueryNumberRequest,
 // for forward compatibility
 type NumbersServer interface {
 	AddNum(context.Context, *AddNumRequest) (*AddNumResponse, error)
-	GetNums(context.Context, *GetNumsRequest) (*GetNumsResponse, error)
+	// rpc getNums (getNumsRequest) returns (getNumsResponse) {}
 	RemoveNum(context.Context, *RemoveNumRequest) (*RemoveNumResponse, error)
 	QueryNumber(context.Context, *QueryNumberRequest) (*QueryNumberResponse, error)
 	mustEmbedUnimplementedNumbersServer()
@@ -85,9 +76,6 @@ type UnimplementedNumbersServer struct {
 
 func (UnimplementedNumbersServer) AddNum(context.Context, *AddNumRequest) (*AddNumResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddNum not implemented")
-}
-func (UnimplementedNumbersServer) GetNums(context.Context, *GetNumsRequest) (*GetNumsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetNums not implemented")
 }
 func (UnimplementedNumbersServer) RemoveNum(context.Context, *RemoveNumRequest) (*RemoveNumResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveNum not implemented")
@@ -122,24 +110,6 @@ func _Numbers_AddNum_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(NumbersServer).AddNum(ctx, req.(*AddNumRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Numbers_GetNums_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetNumsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(NumbersServer).GetNums(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/numberspb.numbers/getNums",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NumbersServer).GetNums(ctx, req.(*GetNumsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -190,10 +160,6 @@ var Numbers_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "addNum",
 			Handler:    _Numbers_AddNum_Handler,
-		},
-		{
-			MethodName: "getNums",
-			Handler:    _Numbers_GetNums_Handler,
 		},
 		{
 			MethodName: "removeNum",
