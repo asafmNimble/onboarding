@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"onboarding/common/data/dbbackends/mongo"
+	"onboarding/common/data/entities"
 	"onboarding/common/data/managers/numbers"
 	numberspb "onboarding/common/grpc/numbers"
 )
@@ -87,6 +88,11 @@ func (ns *NumsServer) QueryNumber(_ context.Context, numReq *numberspb.QueryNumb
 		Num:       i,
 		GuessList: guesses,
 	}, nil
+}
+
+// TODO: write this func or another updating func
+func (ns *NumsServer) UpdateGuessForNumber(n int64, guess *entities.GuessType) (string, error) {
+	return "", nil
 }
 
 func RealNumbers() int {

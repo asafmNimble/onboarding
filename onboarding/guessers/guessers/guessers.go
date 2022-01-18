@@ -11,6 +11,7 @@ import (
 	"onboarding/common/data/dbbackends/mongo"
 	"onboarding/common/data/entities"
 	"onboarding/common/data/managers/guessers"
+	"onboarding/common/data/managers/numbers"
 	"onboarding/common/grpc/api"
 	guesserspb "onboarding/common/grpc/guessers"
 	"strconv"
@@ -107,17 +108,27 @@ func newGuesser(guesserID int64, beginAt int64, incrementBy int64, sleep int64, 
 			primesMap[primeNum] = currPrimeList
 
 			// Update Number guessers list
-			currGuess := entities.GuessType{
+			guessForNumber := entities.GuessType{
 				FoundBy: strconv.Itoa(int(resp.GuesserID)),
 				FoundAt: timeFound,
 			}
+			mn := numbers.NewManager(mongo.NewMongoNumber(mongo.NewMongoConnector()))
+			_, err := mn.UpdateGuessForNumber(numToGuess, &guessForNumber)
+			if err != nil {
+				log.Fatalf("GuesserID: %v encountered the following error : %v", guesserID, err)
+			}
 			// TODO: add to number.guess the guess - send request to Numbers Server to Update the number's guessers list
 
-			// TODO: add to guesser.guessesMade the guess - send request to Guessers Server to Update guesser's list
 			correctGuess := entities.Guess{
 				GuessNum:  numToGuess,
 				GuessedAt: timeFound,
 			}
+			mg := guessers.NewManager(mongo.NewMongoGuesser(mongo.NewMongoConnector()))
+			_, err = mg.UpdateGuessedNumForGuesser(guesserID, &correctGuess)
+			if err != nil {
+				log.Fatalf("GuesserID: %v encountered the following error : %v", guesserID, err)
+			}
+
 		}
 		// sleep sleep
 		time.Sleep(time.Duration(sleep) * time.Second)
